@@ -1,3 +1,4 @@
+//an
 #include <pmm.h>
 #include <list.h>
 #include <string.h>
@@ -77,8 +78,8 @@ default_init_memmap(struct Page *base, size_t n) {
         set_page_ref(p, 0);
         list_add_before(&free_list, &(p->page_link));
     }
+    //SetPageProperty(p);
     nr_free += n;
-    //first block
     base->property = n;
 }
 
@@ -94,6 +95,7 @@ default_alloc_pages(size_t n) {
     while((le=list_next(le)) != &free_list) {
       struct Page *p = le2page(le, page_link);
       if(p->property >= n){
+       
         int i;
         for(i=0;i<n;i++){
           len = list_next(le);
@@ -102,6 +104,7 @@ default_alloc_pages(size_t n) {
           ClearPageProperty(pp);
           list_del(le);
           le = len;
+        
         }
         if(p->property>n){
           (le2page(le,page_link))->property = p->property - n;
@@ -122,13 +125,16 @@ default_free_pages(struct Page *base, size_t n) {
 
     list_entry_t *le = &free_list;
     struct Page * p;
-    while((le=list_next(le)) != &free_list) {
-      p = le2page(le, page_link);
-      if(p>base){
-        break;
-      }
+   if (p->property >= n) {
+			if (!page)
+				page = p;
+			else if (p < page)
+				page = p;
+			//make sure that the page allocate is the low.
+			//Don't make the list ranked,but search the whole list when allocate.
+			//without other modified
     }
-    //list_add_before(le, base->page_link);
+    
     for(p=base;p<base+n;p++){
       list_add_before(le, &(p->page_link));
     }
