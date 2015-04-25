@@ -293,7 +293,7 @@ read_eip(void) {
  * */
 void
 print_stackframe(void) {
-     /* LAB1 YOUR CODE : STEP 1 */
+     /* LAB1 2012011293 : STEP 1 */
      /* (1) call read_ebp() to get the value of ebp. the type is (uint32_t);
       * (2) call read_eip() to get the value of eip. the type is (uint32_t);
       * (3) from 0 .. STACKFRAME_DEPTH
@@ -305,5 +305,24 @@ print_stackframe(void) {
       *           NOTICE: the calling funciton's return addr eip  = ss:[ebp+4]
       *                   the calling funciton's ebp = ss:[ebp]
       */
+      
+    uint32_t ebp = read_ebp();
+    uint32_t eip = read_eip();
+
+    int i = 0, j = 0;
+    for (; ebp != 0 && i < STACKFRAME_DEPTH; i ++) {
+	//print from 0 to STACKFRAME_DEPTH
+        cprintf("ebp:0x%08x eip:0x%08x args:", ebp, eip);
+	//uint32_t* temp_args = (uint32_t)(ebp + 8);        
+	uint32_t *temp_args = (uint32_t *)ebp + 2;
+        for (j = 0; j < 4; j ++) {
+            cprintf("0x%08x ", temp_args[j]);
+        }
+        cprintf("\n");
+        print_debuginfo(eip - 1);
+        eip = ((uint32_t *)ebp)[1];
+        ebp = ((uint32_t *)ebp)[0];
+    }
+    //从当前的位置开始反推之前的esp和eip的位置并输出参数。
 }
 
