@@ -58,14 +58,14 @@ idt_init(void) {
      //you should update your lab1 code (just add ONE or TWO lines of code), let user app to use syscall to get the service of ucore
      //so you should setup the syscall interrupt gate in here
 
-    extern uintptr_t __vectors[];
+	extern uintptr_t __vectors[];
     int i = 0;
     for (;i < sizeof(idt)/sizeof(struct gatedesc);i++)
 		SETGATE(idt[i],0,GD_KTEXT,__vectors[i],DPL_KERNEL);
     SETGATE(idt[T_SYSCALL],1,GD_KTEXT,__vectors[T_SYSCALL],DPL_USER);//
     //通过mmu.h中的SETGATE填充idt数组内容，从trap.h中获得定义了的各种中断，除了T_SYSCALL为陷阱门描述符外，其他的为中断门描述符。
     lidt(&idt_pd);
-    //调用x86.h中的lidt函数嵌入lidt汇编代码
+    //调用x86.h中的lidt函数嵌入lidt汇编代码    
 }
 
 static const char *
@@ -210,7 +210,7 @@ trap_dispatch(struct trapframe *tf) {
                     panic("handle pgfault failed in kernel mode. ret=%d\n", ret);
                 }
                 cprintf("killed by kernel.\n");
-                panic("handle user mode pgfault failed. ret=%d\n", ret); 
+                panic("handle user mode pgfault failed. ret=%d\n", ret);
                 do_exit(-E_KILLED);
             }
         }
@@ -221,7 +221,7 @@ trap_dispatch(struct trapframe *tf) {
     case IRQ_OFFSET + IRQ_TIMER:
 #if 0
     LAB3 : If some page replacement algorithm(such as CLOCK PRA) need tick to change the priority of pages,
-    then you can add code here. 
+    then you can add code here.
 #endif
         /* LAB1 2012011293 : STEP 3 */
         /* handle the timer interrupt */
@@ -229,25 +229,18 @@ trap_dispatch(struct trapframe *tf) {
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
+    	ticks++;
+    	if(ticks % TICK_NUM == 0)
+    	{
+    		print_ticks();
+    		assert(current != NULL);
+    		current->need_resched = 1;
+    	}
         /* LAB5 2012011293 */
-        /* you should upate you lab1 code (just add ONE or TWO lines of code):
+        /* you should update your lab1 code (just add ONE or TWO lines of code):
          *    Every TICK_NUM cycle, you should set current process's current->need_resched = 1
          */
-	
-	/*ticks++;
-	if (ticks >= TICK_NUM) {
-		print_ticks();
-		ticks = 0;
-	}*/
-	//当累加到100的时候输出ticks，并将计数器清零。
 
-	ticks++;
-	if (ticks >= TICK_NUM) {
-		current->need_resched = 1;
-		ticks = 0;
-	}
-	//set current process's current->need_resched = 1
-  
         break;
     case IRQ_OFFSET + IRQ_COM1:
         c = cons_getc();
@@ -294,11 +287,11 @@ trap(struct trapframe *tf) {
         // keep a trapframe chain in stack
         struct trapframe *otf = current->tf;
         current->tf = tf;
-    
+
         bool in_kernel = trap_in_kernel(tf);
-    
+
         trap_dispatch(tf);
-    
+
         current->tf = otf;
         if (!in_kernel) {
             if (current->flags & PF_EXITING) {
